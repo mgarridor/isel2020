@@ -68,7 +68,23 @@ void* leeteclado(){
 
   pthread_exit(NULL);
 }
+void* temp(){
 
+  struct timespec ts;
+  ts.tv_sec = 3;
+  ts.tv_nsec = 0;
+
+  while(1){
+    //si se enciende el LED se pausa la maquina de estados lo que indique el objeto ts
+    if(start_temp==1){
+      start_temp=0;
+      nanosleep(&ts,NULL);
+      flag_temp=1;
+    }
+  }
+    pthread_exit(NULL);
+
+}
 
 int main(){
   //creo la maquina de estados
@@ -76,18 +92,10 @@ int main(){
   //creo el hilo de lectura del teclado
   pthread_t thInputs;
   pthread_create(&thInputs,NULL,leeteclado,NULL);
-
-  struct timespec ts;
-  ts.tv_sec = 3;
-  ts.tv_nsec = 0;
-
+  pthread_t thInputs2;
+  pthread_create(&thInputs2,NULL,temp,NULL);
   while(1) {
-    //si se enciende el LED se pausa la maquina de estados lo que indique el objeto ts
-    if(start_temp==1){
-      start_temp=0;
-      nanosleep(&ts,NULL);
-      flag_temp=1;
-    }
+
     
     fsm_fire(fsm);
   }
