@@ -95,13 +95,7 @@ void aumenta_pulsacion(fsm_t* this){
     return 0;
 }
 
-
-
-
-
-
-/* ////////////////////////////////////////threads
- */void* temporizador(){
+ void* temporizador(){
   struct timespec ts;
   ts.tv_sec = 1;
   ts.tv_nsec = 0;
@@ -115,7 +109,7 @@ void aumenta_pulsacion(fsm_t* this){
 }
 
 
-
+/* threads----------------------------------------------- */
 
 //hilo que lee letras del teclado
 //la tecla q cierra el programa
@@ -141,12 +135,11 @@ void *leeteclado()
 
     pthread_exit(NULL);
 }
+//temporizador para el apagado del led
 void* temp(){
-
   struct timespec ts;
   ts.tv_sec = 3;
   ts.tv_nsec = 0;
-
   while(1){
     //si se enciende el LED se pausa la maquina de estados lo que indique el objeto ts
     if(start_temp_led==1){
@@ -158,6 +151,8 @@ void* temp(){
     pthread_exit(NULL);
 
 }
+
+
 int main(){
     //creo la maquina de estados
     fsm_t *fsm_led = fsm_new_led();
@@ -169,6 +164,7 @@ int main(){
     pthread_t thInputs2;
     pthread_create(&thInputs2,NULL,temp,NULL);
 
+    //inicializo los flags
     flag_led = 0;
     flag_temp_led = 0;
     start_temp_led = 0;
