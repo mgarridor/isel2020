@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "fsm.h"
 #include <pthread.h>
-
+#include "interp.h"
 
 enum fsm_state{LED_ON,LED_OFF};
 
@@ -10,11 +10,11 @@ volatile int flag;
 
 //funcion de activacion
 void ledOn(fsm_t* this){
-  printf("led encendido  \r");
+  printf("led encendido  \n");
   flag=0;
 }
 void ledOff(fsm_t* this){
-  printf("led apagado   \r");
+  printf("led apagado   \n");
   flag=0;
 
 }
@@ -28,35 +28,39 @@ static fsm_trans_t tt[] = {
 {LED_OFF, comprobar_puls, LED_ON,   ledOn},
 {-1,NULL,-1,NULL},
 };
-
-void* leeteclado(){
-    system ("/bin/stty raw");
-    while(1){
-      char letra=getchar();
-      if(letra=='q'){
-        system ("/bin/stty cooked");
-        exit(0);
-      }
-      else if(letra=='d' || letra=='s'){
-        flag=1;
-      }
-      else 
-        printf("\r");    
-    }
-
-  pthread_exit(NULL);
+int pulsacion(char* arg){
+  flag=1;
+  return 0;
 }
-int main(){
-  pthread_t thInputs;
-  pthread_create(&thInputs,NULL,leeteclado,NULL);
 
-    fsm_t* fsm = fsm_new(tt);
-    system ("/bin/stty raw");
-
+static void* interruptor(void* args){
+  interp_addcmd ("s", pulsacion,"Activa el interruptor");
+  interp_addcmd ("d", pulsacion, "Activa el interruptor");
+  fsm_t* fsm = fsm_new(tt);
   while(1) {
     fsm_fire(fsm);
 
   }
+}
+
+
+int main(){
+
+  pthread_t maqEst;
+  pthread_create(&maqEst,NULL,interruptor,NULL);
+
+  interp_run();
+  exit(0);
+  //pthread_t thInputs;
+  //pthread_create(&thInputs,NULL,leeteclado,NULL);
+
+    // fsm_t* fsm = fsm_new(tt);
+  //  system ("/bin/stty raw");
+
+  // while(1) {
+  //   fsm_fire(fsm);
+
+  // }
 
 }
 

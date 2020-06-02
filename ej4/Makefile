@@ -1,9 +1,9 @@
 CC=gcc
 CFLAGS=-g -Wall -ansi -O -I. -DNDEBUG
 LDFLAGS=-L.
-LIBS = -lpthread
-main: main.o fsm.o 
-	gcc -o main main.o fsm.o  $(LIBS)
+LIBS = -lpthread -lreadline
+main: main.o fsm.o interp.o 
+	gcc -o main main.o fsm.o interp.o  $(LIBS)
 
 main.o : main.c
 	gcc -c main.c

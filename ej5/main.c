@@ -3,7 +3,7 @@
 #include "fsm.h"
 #include <time.h>
 #include <pthread.h>
-
+#include "interp.h"
 /*descripcion del ejecicio:
   cada vez que se pulsa la tecla 's' o 'd' es como si se pulsara un interruptor.
   El interruptor enciende una luz y esta se apaga despues de 3 segundos
@@ -16,12 +16,12 @@ volatile int start_temp;
 
 //funciones de activacion
 void ledOn(fsm_t* this){
-  printf("led encendido  \r");
+  printf("led encendido  \n");
   flag=0;
   start_temp=1;
 }
 void ledOff(fsm_t* this){
-  printf("led apagado   \r");
+  printf("led apagado   \n");
   flag_temp=0;
 }
 
@@ -48,28 +48,8 @@ fsm_t* fsm_new_led(){
 //hilo que lee letras del teclado
 //la tecla q cierra el programa
 //las teclas d y s son los interruptores
-void* leeteclado(){
-    system ("/bin/stty raw");
 
-    while(1){
-      char letra=getchar();
-      if(letra=='q'){
-        system ("/bin/stty cooked");
-        exit(0);
-      }
-      else if(letra=='d' || letra=='s'){
-        flag=1;
-        printf("\r");    
-
-      }
-      else 
-        printf("\r");    
-    }
-
-  pthread_exit(NULL);
-}
 void* temp(){
-
   struct timespec ts;
   ts.tv_sec = 3;
   ts.tv_nsec = 0;
@@ -85,21 +65,28 @@ void* temp(){
     pthread_exit(NULL);
 
 }
+int pulsacion(char* arg){
+  flag=1;
+  return 0;
+}
+static void* interruptor(void* args){
+  interp_addcmd ("s", pulsacion,"Activa el interruptor");
+  interp_addcmd ("d", pulsacion, "Activa el interruptor");
+  fsm_t* fsm = fsm_new_led();
+  while(1) {
+    fsm_fire(fsm);
+
+  }
+}
 
 int main(){
-  //creo la maquina de estados
-  fsm_t* fsm = fsm_new_led();
-  //creo el hilo de lectura del teclado
-  pthread_t thInputs;
-  pthread_create(&thInputs,NULL,leeteclado,NULL);
+  pthread_t maqEst;
   pthread_t thInputs2;
   pthread_create(&thInputs2,NULL,temp,NULL);
-  while(1) {
+  pthread_create(&maqEst,NULL,interruptor,NULL);
 
-    
-    fsm_fire(fsm);
-  }
-
+  interp_run();
+  exit(0);
 }
 
 
