@@ -141,9 +141,12 @@ int pulsacionLed(char* arg){
   flag_led=1;
   return 0;
 }
-static void* task_led(void* args){
-    pthread_t thInputs2;
-    pthread_create(&thInputs2,NULL,tempLed,NULL);
+static void* taskLed(void* args){
+  pthread_t thInputs2;
+  pthread_create(&thInputs2,NULL,tempLed,NULL);
+
+  portTickType period = 100 / portTICK_RATE_MS;
+  portTickType last = xTaskGetTickCount();
   //inicializo los flags
   flag_led = 0;
   flag_temp_led = 0;
@@ -154,6 +157,7 @@ static void* task_led(void* args){
   fsm_t* fsm = fsm_new_led();
   while(1) {
     fsm_fire(fsm);
+    vTaskDelayUntil(&last, period);
 
   }
 }
@@ -163,10 +167,14 @@ int pulsacionAlarma(char* arg){
 }
 static void* taskAlarma(void* args){
   interp_addcmd ("z", pulsacionAlarma,"Boton de codigo");
+
+  portTickType period = 100 / portTICK_RATE_MS;
+  portTickType last = xTaskGetTickCount();
+
+
   pthread_t thTemp;
   pthread_create(&thTemp,NULL,tempAlarma,NULL);
 
-    
     //creo la maquina de estados
   fsm_t* fsm = fsm_new_alarma();
   pthread_mutex_init (&m_flag_temp_alarma, NULL);
@@ -181,15 +189,24 @@ static void* taskAlarma(void* args){
 
   while(1) {
     fsm_fire(fsm);
+    vTaskDelayUntil(&last, period);
   }
 }
 
+void user_init(void)
+{
+    xTaskHandle taskH_Led;
+    xTaskCreate(taskLed, (const signed char *)"led", 2048, NULL, 1, &taskH_Led);
+    xTaskHandle taskH_Alarma;
+    xTaskCreate(taskAlarma, (const signed char *)"alarma", 2048, NULL, 2, &taskH_Alarma);
+}
+
+void vApplicationIdleHook(void) {}
+void vMainQueueSendPassed(void) {}
 
 int main(){
-    pthread_t maqEstLed;
-  pthread_create(&maqEstLed,NULL,task_led,NULL);
-    pthread_t maqEstAlarma;
-  pthread_create(&maqEstAlarma,NULL,taskAlarma,NULL);
+  user_init();
+  vTaskStartScheduler();
   interp_run();
   exit(0);
 

@@ -141,34 +141,27 @@ int pulsacionLed(char* arg){
   flag_led=1;
   return 0;
 }
-static void* task_led(void* args){
-    pthread_t thInputs2;
-    pthread_create(&thInputs2,NULL,tempLed,NULL);
+
+int pulsacionAlarma(char* arg){
+  flag_alarma=1;
+  return 0;
+}
+
+
+static void bucle_ppal(void* args){
+
+  //lanzo thread timers
+  pthread_t thTemp;
+  pthread_create(&thTemp,NULL,tempAlarma,NULL);
+
+  pthread_t thTemp2;
+  pthread_create(&thTemp2,NULL,tempLed,NULL);
+
   //inicializo los flags
   flag_led = 0;
   flag_temp_led = 0;
   start_temp_led = 0;
 
-  interp_addcmd ("s", pulsacionLed,"Activa el interruptor");
-  interp_addcmd ("d", pulsacionLed, "Activa el interruptor");
-  fsm_t* fsm = fsm_new_led();
-  while(1) {
-    fsm_fire(fsm);
-
-  }
-}
-int pulsacionAlarma(char* arg){
-  flag_alarma=1;
-  return 0;
-}
-static void* taskAlarma(void* args){
-  interp_addcmd ("z", pulsacionAlarma,"Boton de codigo");
-  pthread_t thTemp;
-  pthread_create(&thTemp,NULL,tempAlarma,NULL);
-
-    
-    //creo la maquina de estados
-  fsm_t* fsm = fsm_new_alarma();
   pthread_mutex_init (&m_flag_temp_alarma, NULL);
   flag_alarma=0;
   pthread_mutex_lock (&m_flag_temp_alarma);
@@ -179,17 +172,33 @@ static void* taskAlarma(void* args){
   posicion=0;
   pulsaciones=0;
 
+  //comandos terminal
+
+  interp_addcmd ("s", pulsacionLed,"Activa el interruptor");
+  interp_addcmd ("d", pulsacionLed, "Activa el interruptor");
+
+  interp_addcmd ("z", pulsacionAlarma,"Boton de codigo");
+
+  //creo las maquinas de estados
+  fsm_t* fsmLed = fsm_new_alarma();
+  fsm_t* fsmAlarma = fsm_new_led();
+
+  //hiperperiodo de cada tarea
+  struct timespec ts;
+  ts.tv_sec = 0;
+  ts.tv_nsec = 10000;
+
   while(1) {
-    fsm_fire(fsm);
+    fsm_fire(fsmAlarma);
+    fsm_fire(fsmLed);
+    nanosleep(&ts,NULL);
   }
+
 }
 
-
 int main(){
-    pthread_t maqEstLed;
-  pthread_create(&maqEstLed,NULL,task_led,NULL);
-    pthread_t maqEstAlarma;
-  pthread_create(&maqEstAlarma,NULL,taskAlarma,NULL);
+  pthread_t principal;
+  pthread_create(&principal,NULL,bucle_ppal,NULL);
   interp_run();
   exit(0);
 

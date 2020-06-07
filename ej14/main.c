@@ -141,34 +141,39 @@ int pulsacionLed(char* arg){
   flag_led=1;
   return 0;
 }
-static void* task_led(void* args){
-    pthread_t thInputs2;
-    pthread_create(&thInputs2,NULL,tempLed,NULL);
-  //inicializo los flags
-  flag_led = 0;
-  flag_temp_led = 0;
-  start_temp_led = 0;
+  fsm_t* fsmLed;
+  fsm_t* fsmAlarma;
+static void task_led(struct event_handler_t* this){
+  fsm_fire(fsmLed);
+  static const struct timeval period = { 0, 10000 };
+  timeval_add (&this->next_activation, &this->next_activation, &period);
 
-  interp_addcmd ("s", pulsacionLed,"Activa el interruptor");
-  interp_addcmd ("d", pulsacionLed, "Activa el interruptor");
-  fsm_t* fsm = fsm_new_led();
-  while(1) {
-    fsm_fire(fsm);
-
-  }
 }
 int pulsacionAlarma(char* arg){
   flag_alarma=1;
   return 0;
 }
-static void* taskAlarma(void* args){
-  interp_addcmd ("z", pulsacionAlarma,"Boton de codigo");
+static void taskAlarma(struct event_handler_t* this){
+    fsm_fire(fsmAlarma);
+  static const struct timeval period = { 0, 10000 };
+  timeval_add (&this->next_activation, &this->next_activation, &period);
+}
+
+
+static void bucle_ppal(void* args){
+
+  //lanzo thread timers
   pthread_t thTemp;
   pthread_create(&thTemp,NULL,tempAlarma,NULL);
 
-    
-    //creo la maquina de estados
-  fsm_t* fsm = fsm_new_alarma();
+  pthread_t thTemp2;
+  pthread_create(&thTemp2,NULL,tempLed,NULL);
+
+  //inicializo los flags
+  flag_led = 0;
+  flag_temp_led = 0;
+  start_temp_led = 0;
+
   pthread_mutex_init (&m_flag_temp_alarma, NULL);
   flag_alarma=0;
   pthread_mutex_lock (&m_flag_temp_alarma);
@@ -179,17 +184,36 @@ static void* taskAlarma(void* args){
   posicion=0;
   pulsaciones=0;
 
-  while(1) {
-    fsm_fire(fsm);
+  //comandos terminal
+
+  interp_addcmd ("s", pulsacionLed,"Activa el interruptor");
+  interp_addcmd ("d", pulsacionLed, "Activa el interruptor");
+
+  interp_addcmd ("z", pulsacionAlarma,"Boton de codigo");
+
+  //creo las maquinas de estados
+  fsmLed = fsm_new_alarma();
+  fsmAlarma = fsm_new_led();
+
+
+  while (1) {
+    reactor_handle_events ();
   }
+  exit(0);
 }
 
 
 int main(){
-    pthread_t maqEstLed;
-  pthread_create(&maqEstLed,NULL,task_led,NULL);
-    pthread_t maqEstAlarma;
-  pthread_create(&maqEstAlarma,NULL,taskAlarma,NULL);
+  EventHandler eh1, eh2;
+  reactor_init ();
+
+  event_handler_init (&eh1, 2, task_led);
+  reactor_add_handler (&eh1);
+
+  event_handler_init (&eh2, 1, taskAlarma);
+  reactor_add_handler (&eh2);
+  pthread_t principal;
+  pthread_create(&principal,NULL,bucle_ppal,NULL);
   interp_run();
   exit(0);
 
