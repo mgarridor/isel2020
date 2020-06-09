@@ -1,0 +1,33 @@
+never especLed1 {    /* !([] ((! (((botonLed==1)) && ((flag_timer_led==0)))) || (<> (luz)))) */
+T0_init:
+	do
+	:: (! ((! (((botonLed==1)) && ((flag_timer_led==0))))) && ! ((luz))) -> goto accept_S4
+	:: (1) -> goto T0_init
+	od;
+accept_S4:
+	do
+	:: (! ((luz))) -> goto accept_S4
+	od;
+}
+never especLed2 {    /* !([] ((! ((((luz==1)) && ((flag_timer_led==1))) && (botonLed))) || (<> (! (luz))))) */
+T0_init:
+	do
+	:: (! ((! ((((luz==1)) && ((flag_timer_led==1))) && (botonLed)))) && ! ((! (luz)))) -> goto accept_S4
+	:: (1) -> goto T0_init
+	od;
+accept_S4:
+	do
+	:: (! ((! (luz)))) -> goto accept_S4
+	od;
+}
+never especLed3 {    /* !([] ((! ((start_temp==1))) || (<> (flag_timer_led)))) */
+T0_init:
+	do
+	:: (! ((! ((start_temp==1)))) && ! ((flag_timer_led))) -> goto accept_S4
+	:: (1) -> goto T0_init
+	od;
+accept_S4:
+	do
+	:: (! ((flag_timer_led))) -> goto accept_S4
+	od;
+}

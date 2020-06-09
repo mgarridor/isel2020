@@ -1,0 +1,33 @@
+never espec1 {    /* !([] ((! ((boton==1))) || (<> ((estado==1))))) */
+T0_init:
+	do
+	:: (! ((! ((boton==1)))) && ! (((estado==1)))) -> goto accept_S4
+	:: (1) -> goto T0_init
+	od;
+accept_S4:
+	do
+	:: (! (((estado==1)))) -> goto accept_S4
+	od;
+}
+never espec2 {    /* !([] ((! ((pulsaciones>codigo[posicion]))) || (<> (codigo_err)))) */
+T0_init:
+	do
+	:: (! ((! ((pulsaciones>codigo[posicion])))) && ! ((codigo_err))) -> goto accept_S4
+	:: (1) -> goto T0_init
+	od;
+accept_S4:
+	do
+	:: (! ((codigo_err))) -> goto accept_S4
+	od;
+}
+never espec3 {    /* !([] ((! ((((pulsaciones==codigo[2])) && ((posicion==2))) && ((flag_t==1)))) || (<> (codigo_ok)))) */
+T0_init:
+	do
+	:: (! ((! ((((pulsaciones==codigo[2])) && ((posicion==2))) && ((flag_t==1))))) && ! ((codigo_ok))) -> goto accept_S4
+	:: (1) -> goto T0_init
+	od;
+accept_S4:
+	do
+	:: (! ((codigo_ok))) -> goto accept_S4
+	od;
+}
