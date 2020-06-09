@@ -57,14 +57,14 @@ void empieza_timer(fsm_t* this){
   pulsaciones =1;
   start_temp_alarma=1;
   flag_alarma=0;
-  printf("pulsaciones: %d \n ",pulsaciones);
+  printf("%d \n ",pulsaciones);
 }
 void aumenta_pulsacion(fsm_t* this){
   pthread_mutex_lock (&m_flag_temp_alarma);
     flag_temp_alarma=0;
   pthread_mutex_unlock (&m_flag_temp_alarma);
   pulsaciones++;
-  printf("pulsaciones: %d \n ",pulsaciones);
+  printf("%d \n ",pulsaciones);
 
   
   flag_alarma=0;
@@ -73,25 +73,25 @@ void aumenta_pulsacion(fsm_t* this){
 }
 /* funciones de comprobacion
  */
-/* //comprueba si se ha pulsado el boton
- */int comprueba_primera_pulsacion(fsm_t* this){
+/* //comprueba si se ha pulsado el boton*/
+int comprueba_primera_pulsacion(fsm_t* this){
   return flag_alarma;
 }
 int comprueba_pulsaciones(fsm_t* this){
     return flag_alarma && pulsaciones<codigo[posicion];
 }
-/* //comprueba si la cifra actual del codigo es correcta
- */int comprueba_codigo(fsm_t* this){
+/* //comprueba si la cifra actual del codigo es correcta*/
+int comprueba_codigo(fsm_t* this){
     return flag_temp_alarma && pulsaciones==codigo[posicion] && posicion <2;
 
 }
-/* //comprueba si el codigo completo es correcto
- */int codigo_correcto(fsm_t* this){
+/* //comprueba si el codigo completo es correcto*/
+int codigo_correcto(fsm_t* this){
     return pulsaciones==codigo[posicion] && flag_temp_alarma && posicion==2;
 
 }
-/* //comprueba si el codigo pulsado es mayor que el correcto
- */int codigo_erroneo(fsm_t* this){
+/* //comprueba si el codigo pulsado es mayor que el correcto*/
+int codigo_erroneo(fsm_t* this){
    return  (flag_alarma==1 && pulsaciones==codigo[posicion])||
           (pulsaciones<codigo[posicion]&& flag_temp_alarma);
 

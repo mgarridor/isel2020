@@ -5,9 +5,8 @@
 #include <time.h>
 #include <pthread.h>
 #include "interp.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-
+#include "task.h"
+#include <features.h>
 
 /* led------------------------- */
 volatile int flag_led;
